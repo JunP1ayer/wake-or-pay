@@ -1,16 +1,12 @@
 export interface PaymentConfig {
   currency: string
   symbol: string
-  amounts: number[]
-  default: number
-  minAmount: number
-  maxAmount: number
-  allowAmountSelection: boolean  // Flag to control amount selection UI
+  amount: number  // Single fixed amount
   texts: {
     title: string
     subtitle: string
-    commitment: (amount: number) => string
-    button: (amount: number) => string
+    commitment: string
+    button: string
   }
 }
 
@@ -18,31 +14,23 @@ export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
   jp: {
     currency: 'JPY',
     symbol: '¥',
-    amounts: [100], // Fixed amount for Japan
-    default: 100,
-    minAmount: 100,
-    maxAmount: 100,
-    allowAmountSelection: false,
+    amount: 100,
     texts: {
       title: '罰金設定',
       subtitle: '寝坊したら¥100が自動で請求されます',
-      commitment: (amount: number) => `寝坊したら¥${amount}が自動で請求されます`,
-      button: (amount: number) => `続ける`
+      commitment: '寝坊したら¥100が自動で請求されます',
+      button: '¥100で続ける'
     }
   },
   global: {
     currency: 'USD',
     symbol: '$',
-    amounts: [1], // Fixed $1 for global version
-    default: 1,
-    minAmount: 1,
-    maxAmount: 1,
-    allowAmountSelection: false,
+    amount: 1,
     texts: {
       title: 'Penalty Setup',
       subtitle: 'You\'ll automatically be charged $1 if you don\'t wake up.',
-      commitment: (amount: number) => `I\'ll automatically be charged $${amount} if I don\'t wake up`,
-      button: (amount: number) => `Continue`
+      commitment: 'I\'ll automatically be charged $1 if I don\'t wake up',
+      button: 'Continue with $1'
     }
   }
 }
@@ -62,4 +50,9 @@ export function convertToSmallestUnit(amount: number, currency: string): number 
   }
   
   return amount * 100
+}
+
+// Get the penalty amount for a locale
+export function getPenaltyAmount(locale: 'jp' | 'global'): number {
+  return getPaymentConfig(locale).amount
 }

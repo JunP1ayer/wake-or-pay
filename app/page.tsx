@@ -7,7 +7,7 @@ import { signInAnonymously, getCurrentUser, createUserProfile } from '@/lib/auth
 import { supabase } from '@/lib/supabase'
 import { scheduleWakeUpAlarm } from '@/lib/notifications'
 import { useLocale } from '@/utils/locale'
-import { getPaymentConfig, convertToSmallestUnit } from '@/utils/payment'
+import { getPaymentConfig, convertToSmallestUnit, getPenaltyAmount } from '@/utils/payment'
 import type { User } from '@supabase/supabase-js'
 
 export default function HomePage() {
@@ -15,7 +15,7 @@ export default function HomePage() {
   const paymentConfig = getPaymentConfig(locale)
   const [step, setStep] = useState(1)
   const [wakeTime, setWakeTime] = useState('07:00')
-  const [penaltyAmount, setPenaltyAmount] = useState(paymentConfig.default)
+  const penaltyAmount = getPenaltyAmount(locale)
   const [verificationMethod, setVerificationMethod] = useState<'face' | 'shake' | 'both'>('face')
   const [isLoading, setIsLoading] = useState(false)
   const [user, setUser] = useState<User | null>(null)
@@ -169,20 +169,25 @@ export default function HomePage() {
           {step === 2 && (
             <div className="space-y-4">
               <div className="text-center">
-                <div className="bg-primary-50 rounded-lg p-8 mb-4">
-                  <p className="text-lg text-gray-700 mb-2">
+                <div className="bg-primary-50 rounded-lg p-8 mb-6">
+                  <p className="text-lg text-gray-700 mb-4">
                     {paymentConfig.texts.subtitle}
                   </p>
-                  <span className="text-4xl font-bold text-primary-600">
-                    {locale === 'jp' ? '¥100' : '$1'}
-                  </span>
+                  <div className="bg-white rounded-lg p-6 shadow-sm border-2 border-primary-200">
+                    <span className="text-5xl font-bold text-primary-600">
+                      {paymentConfig.symbol}{paymentConfig.amount}
+                    </span>
+                    <p className="text-sm text-gray-600 mt-2">
+                      {paymentConfig.texts.commitment}
+                    </p>
+                  </div>
                 </div>
               </div>
               <button
                 onClick={() => setStep(3)}
-                className="btn-primary w-full"
+                className="btn-primary w-full text-lg py-4"
               >
-                {paymentConfig.texts.button(paymentConfig.default)}
+                {paymentConfig.texts.button}
               </button>
             </div>
           )}
@@ -237,8 +242,8 @@ export default function HomePage() {
                 </h2>
                 <p className="text-gray-600 mb-4">
                   {locale === 'jp' 
-                    ? <>アラームは <strong>{wakeTime}</strong> にセットされました。寝坊したら¥100が自動的に請求されます。</>
-                    : <>Your alarm is set for <strong>{wakeTime}</strong>. You'll be automatically charged $1 if you don't wake up.</>}
+                    ? <>アラームは <strong>{wakeTime}</strong> にセットされました。寝坊したら{paymentConfig.symbol}{paymentConfig.amount}が自動的に請求されます。</>
+                    : <>Your alarm is set for <strong>{wakeTime}</strong>. You'll be automatically charged {paymentConfig.symbol}{paymentConfig.amount} if you don't wake up.</>}
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
                   <p className="text-yellow-800">

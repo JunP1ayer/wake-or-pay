@@ -19,7 +19,7 @@ export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       title: '罰金設定',
       subtitle: '寝坊したら¥100が自動で請求されます',
       commitment: '寝坊したら¥100が自動で請求されます',
-      button: '¥100で続ける'
+      button: '同意して進む'
     }
   },
   global: {
@@ -30,7 +30,7 @@ export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       title: 'Penalty Setup',
       subtitle: 'You\'ll automatically be charged $1 if you don\'t wake up.',
       commitment: 'I\'ll automatically be charged $1 if I don\'t wake up',
-      button: 'Continue with $1'
+      button: 'Agree & Continue'
     }
   }
 }

@@ -42,14 +42,7 @@ function showAlarmNotification() {
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-192x192.png',
       tag: 'wake-up-alarm',
-      requireInteraction: true, // Keep notification until user interacts
-      actions: [
-        {
-          action: 'stop',
-          title: '止める',
-          icon: '/icons/icon-192x192.png'
-        }
-      ]
+      requireInteraction: true // Keep notification until user interacts
     })
 
     // Handle notification click

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Clock, Yen } from 'lucide-react'
+import { Clock, DollarSign } from 'lucide-react'
 
 export default function JapanesePage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -50,7 +50,7 @@ export default function JapanesePage() {
                 罰金設定
               </h2>
               <div className="flex items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg">
-                <Yen className="w-6 h-6 text-gray-600" />
+                <DollarSign className="w-6 h-6 text-gray-600" />
                 <span className="text-3xl font-bold text-gray-900">100円</span>
               </div>
               <p className="text-sm text-gray-600 mt-2">

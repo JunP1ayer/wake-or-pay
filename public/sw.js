@@ -138,7 +138,9 @@ self.addEventListener('message', (event) => {
           alarmTime,
           reminderTime,
           scheduled: Date.now()
-        })))
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        }))
       })
     )
   }

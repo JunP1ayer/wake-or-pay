@@ -17,7 +17,7 @@ export interface PaymentConfig {
 export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
   jp: {
     currency: 'JPY',
-    symbol: '円',
+    symbol: '¥',
     amounts: [100], // Fixed amount for Japan
     default: 100,
     minAmount: 100,
@@ -25,8 +25,8 @@ export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
     allowAmountSelection: false,
     texts: {
       title: '罰金設定',
-      subtitle: '寝坊したら100円払います',
-      commitment: (amount: number) => `寝坊したら${amount}円払います`,
+      subtitle: '寝坊したら¥100が自動で請求されます',
+      commitment: (amount: number) => `寝坊したら¥${amount}が自動で請求されます`,
       button: (amount: number) => `続ける`
     }
   },
@@ -40,8 +40,8 @@ export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
     allowAmountSelection: false,
     texts: {
       title: 'Penalty Setup',
-      subtitle: 'You\'ll pay $1 if you oversleep',
-      commitment: (amount: number) => `I\'ll pay $${amount} if I oversleep`,
+      subtitle: 'You\'ll automatically be charged $1 if you don\'t wake up.',
+      commitment: (amount: number) => `I\'ll automatically be charged $${amount} if I don\'t wake up`,
       button: (amount: number) => `Continue`
     }
   }

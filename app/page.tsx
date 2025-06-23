@@ -174,7 +174,7 @@ export default function HomePage() {
                     {paymentConfig.texts.subtitle}
                   </p>
                   <span className="text-4xl font-bold text-primary-600">
-                    {locale === 'jp' ? '100円' : '$1'}
+                    {locale === 'jp' ? '¥100' : '$1'}
                   </span>
                 </div>
               </div>
@@ -237,8 +237,8 @@ export default function HomePage() {
                 </h2>
                 <p className="text-gray-600 mb-4">
                   {locale === 'jp' 
-                    ? <>アラームは <strong>{wakeTime}</strong> にセットされました。寝坊したら100円が自動的に支払われます。</>
-                    : <>Your alarm is set for <strong>{wakeTime}</strong> with a $1 penalty.</>}
+                    ? <>アラームは <strong>{wakeTime}</strong> にセットされました。寝坊したら¥100が自動的に請求されます。</>
+                    : <>Your alarm is set for <strong>{wakeTime}</strong>. You'll be automatically charged $1 if you don't wake up.</>}
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
                   <p className="text-yellow-800">

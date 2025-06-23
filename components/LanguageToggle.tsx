@@ -18,14 +18,8 @@ export default function LanguageToggle() {
   useEffect(() => {
     setMounted(true)
     
-    // Check for saved locale preference on mount
-    const savedLocale = localStorage.getItem(LOCALE_STORAGE_KEY)
-    if (savedLocale && savedLocale !== currentLocale) {
-      // Only redirect if we're on the home page to avoid disrupting user navigation
-      if (pathname === '/' || pathname === '/jp') {
-        handleLocaleChange(savedLocale as 'en' | 'jp')
-      }
-    }
+    // Note: Removed automatic locale redirection to maintain proper onboarding flow
+    // Users can still manually change language via the toggle
   }, [])
 
   const handleLocaleChange = (newLocale: 'en' | 'jp') => {

@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { signInAnonymously, getCurrentUser, createUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { scheduleWakeUpAlarm } from '@/lib/notifications'
+import { scheduleAlarm } from '@/lib/alarm'
 import { useLocale } from '@/utils/locale'
 import { getPaymentConfig, convertToSmallestUnit, getPenaltyAmount } from '@/utils/payment'
 import type { User } from '@supabase/supabase-js'
@@ -60,6 +61,10 @@ export default function HomePage() {
         // Schedule wake-up notifications
         await scheduleWakeUpAlarm(wakeTime, verificationMethod)
         console.log('[Setup] Wake-up alarm scheduled for:', wakeTime)
+        
+        // Schedule actual alarm with audio + notification
+        await scheduleAlarm(wakeTime)
+        console.log('[Setup] Audio alarm scheduled for:', wakeTime)
         
         setStep(4) // Success step
       }

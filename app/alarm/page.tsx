@@ -2,65 +2,49 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, Bell, X, CheckCircle } from 'lucide-react';
+import { Clock, Bell, X, CheckCircle, Volume2 } from 'lucide-react';
+import { stopAlarmAudio } from '@/lib/alarm';
 
 export default function AlarmPage() {
-  const [alarmTime, setAlarmTime] = useState('');
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
-  const [hasTriggered, setHasTriggered] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isAlarmTriggered, setIsAlarmTriggered] = useState(false);
   const router = useRouter();
 
-  const playAlarm = useCallback(async () => {
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio('/alarm.mp3');
-      }
-      
-      await audioRef.current.play();
-      
-      setTimeout(() => {
-        router.push('/face');
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to play alarm sound:', error);
-      alert('Alarm triggered but could not play sound. Redirecting to face recognition...');
-      router.push('/face');
-    }
+  const handleStopAlarm = useCallback(() => {
+    // Stop the alarm audio
+    stopAlarmAudio();
+    
+    // Redirect to face verification
+    router.push('/face');
   }, [router]);
 
   useEffect(() => {
+    // Update current time every second
     const interval = setInterval(() => {
       const now = new Date();
       const timeString = now.toTimeString().slice(0, 5);
       setCurrentTime(timeString);
-
-      if (isAlarmSet && alarmTime && !hasTriggered) {
-        if (timeString === alarmTime) {
-          setHasTriggered(true);
-          playAlarm();
-        }
-      }
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [isAlarmSet, alarmTime, hasTriggered, playAlarm]);
-
-  const handleSetAlarm = () => {
-    if (alarmTime) {
-      setIsAlarmSet(true);
-      setHasTriggered(false);
+    // Check if we're on this page because alarm was triggered
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('triggered') === 'true') {
+      setIsAlarmTriggered(true);
     }
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleGoToVerification = () => {
+    // Stop alarm and go to face verification
+    stopAlarmAudio();
+    router.push('/face');
   };
 
-  const handleCancelAlarm = () => {
-    setIsAlarmSet(false);
-    setHasTriggered(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
+  const handleGoHome = () => {
+    // Stop alarm and go home
+    stopAlarmAudio();
+    router.push('/');
   };
 
   return (
@@ -68,14 +52,20 @@ export default function AlarmPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Clock className="w-8 h-8 text-blue-600" />
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+            isAlarmTriggered ? 'bg-red-100 animate-pulse' : 'bg-blue-100'
+          }`}>
+            {isAlarmTriggered ? (
+              <Volume2 className="w-8 h-8 text-red-600" />
+            ) : (
+              <Clock className="w-8 h-8 text-blue-600" />
+            )}
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Wake Up Alarm
+            {isAlarmTriggered ? '🚨 Wake Up!' : 'Wake Up Alarm'}
           </h1>
           <p className="text-gray-600">
-            Set your personal wake-up alarm
+            {isAlarmTriggered ? 'Time to prove you\'re awake!' : 'Your alarm is ready'}
           </p>
         </div>
 
@@ -89,86 +79,85 @@ export default function AlarmPage() {
           </p>
         </div>
 
-        {/* Alarm Settings Card */}
-        <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
-          <div className="space-y-3">
-            <label htmlFor="alarm-time" className="block text-sm font-semibold text-gray-700">
-              Set Alarm Time
-            </label>
-            <input
-              id="alarm-time"
-              type="time"
-              value={alarmTime}
-              onChange={(e) => setAlarmTime(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-xl font-mono text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              disabled={isAlarmSet}
-            />
-          </div>
-
-          <div className="flex gap-3">
-            {!isAlarmSet ? (
+        {/* Action Card */}
+        {isAlarmTriggered ? (
+          <div className="bg-red-50 border border-red-200 rounded-xl shadow-lg p-6 space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-red-800 mb-2">
+                Alarm is Ringing!
+              </h2>
+              <p className="text-red-600 mb-6">
+                Complete face verification to stop the alarm and avoid the penalty.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
               <button
-                onClick={handleSetAlarm}
-                disabled={!alarmTime}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+                onClick={handleGoToVerification}
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium text-lg"
               >
-                <Bell className="w-5 h-5" />
-                Set Alarm
+                <CheckCircle className="w-6 h-6" />
+                Stop Alarm & Verify I'm Awake
               </button>
-            ) : (
+              
               <button
-                onClick={handleCancelAlarm}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium"
+                onClick={handleStopAlarm}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 font-medium"
               >
                 <X className="w-5 h-5" />
-                Cancel Alarm
+                Just Stop Alarm (Skip Verification)
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Status Messages */}
-        {isAlarmSet && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <div>
-                <p className="text-green-800 font-medium">
-                  Alarm Active
-                </p>
-                <p className="text-green-700 text-sm">
-                  Set for {alarmTime} - Stay awake!
-                </p>
-              </div>
             </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-gray-800 mb-2">
+                Alarm Ready
+              </h2>
+              <p className="text-gray-600">
+                Your alarm has been scheduled. When it triggers, you'll be redirected here automatically.
+              </p>
+            </div>
+            
+            <button
+              onClick={handleGoHome}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium"
+            >
+              <Clock className="w-5 h-5" />
+              Back to Dashboard
+            </button>
           </div>
         )}
 
-        {hasTriggered && (
+        {/* Status Message */}
+        {isAlarmTriggered && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <Bell className="w-5 h-5 text-yellow-600" />
+              <Bell className="w-5 h-5 text-yellow-600 animate-bounce" />
               <div>
                 <p className="text-yellow-800 font-medium">
-                  Alarm Triggered!
+                  Alarm Audio Playing
                 </p>
                 <p className="text-yellow-700 text-sm">
-                  Redirecting to verification...
+                  The alarm will continue until you complete verification or stop it manually.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Back to Home */}
-        <div className="text-center">
-          <button
-            onClick={() => router.push('/')}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-          >
-            ← Back to Home
-          </button>
-        </div>
+        {/* Info Message */}
+        {!isAlarmTriggered && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="text-center">
+              <p className="text-blue-800 text-sm">
+                💡 <strong>Tip:</strong> When your alarm triggers, you'll be automatically redirected to this page. 
+                The alarm will play until you complete face verification.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

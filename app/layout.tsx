@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import PWAInstaller from '@/components/PWAInstaller'
+import LanguageToggle from '@/components/LanguageToggle'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -59,9 +60,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          {children}
-        </main>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+          {/* Language Toggle */}
+          <div className="absolute top-4 right-4 z-50">
+            <LanguageToggle />
+          </div>
+          
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </div>
         <PWAInstaller />
       </body>
     </html>

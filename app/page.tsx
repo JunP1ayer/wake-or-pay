@@ -6,12 +6,16 @@ import { cn } from '@/lib/utils'
 import { signInAnonymously, getCurrentUser, createUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { scheduleWakeUpAlarm } from '@/lib/notifications'
+import { useLocale } from '@/utils/locale'
+import { getPaymentConfig, convertToSmallestUnit } from '@/utils/payment'
 import type { User } from '@supabase/supabase-js'
 
 export default function HomePage() {
+  const locale = useLocale()
+  const paymentConfig = getPaymentConfig(locale)
   const [step, setStep] = useState(1)
   const [wakeTime, setWakeTime] = useState('07:00')
-  const [penaltyAmount, setPenaltyAmount] = useState(5)
+  const [penaltyAmount, setPenaltyAmount] = useState(paymentConfig.default)
   const [verificationMethod, setVerificationMethod] = useState<'face' | 'shake' | 'both'>('face')
   const [isLoading, setIsLoading] = useState(false)
   const [user, setUser] = useState<User | null>(null)
@@ -45,9 +49,10 @@ export default function HomePage() {
           .insert({
             user_id: currentUser.id,
             wake_time: wakeTime,
-            penalty_amount: penaltyAmount * 100, // Convert to cents
+            penalty_amount: convertToSmallestUnit(penaltyAmount, paymentConfig.currency),
             verification_method: verificationMethod,
-            is_active: true
+            is_active: true,
+            currency: paymentConfig.currency
           })
 
         if (error) throw error
@@ -73,8 +78,8 @@ export default function HomePage() {
       icon: Clock
     },
     {
-      title: "How much will you pay for sleeping in?",
-      subtitle: "Choose your penalty amount",
+      title: paymentConfig.texts.title,
+      subtitle: paymentConfig.texts.subtitle,
       icon: Shield
     },
     {
@@ -163,47 +168,21 @@ export default function HomePage() {
           {/* Step 2: Penalty Amount */}
           {step === 2 && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Penalty amount
-                </label>
-                <div className="flex items-center space-x-4">
-                  {[1, 5, 10, 25].map((amount) => (
-                    <button
-                      key={amount}
-                      onClick={() => setPenaltyAmount(amount)}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-lg font-medium transition-colors",
-                        penaltyAmount === amount
-                          ? "bg-primary-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      )}
-                    >
-                      ${amount}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={penaltyAmount}
-                    onChange={(e) => setPenaltyAmount(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="text-center mt-2">
-                    <span className="text-2xl font-bold text-primary-600">
-                      ${penaltyAmount}
-                    </span>
-                  </div>
+              <div className="text-center">
+                <div className="bg-primary-50 rounded-lg p-8 mb-4">
+                  <p className="text-lg text-gray-700 mb-2">
+                    {paymentConfig.texts.subtitle}
+                  </p>
+                  <span className="text-4xl font-bold text-primary-600">
+                    {locale === 'jp' ? '100円' : '$1'}
+                  </span>
                 </div>
               </div>
               <button
                 onClick={() => setStep(3)}
                 className="btn-primary w-full"
               >
-                Continue
+                {paymentConfig.texts.button(paymentConfig.default)}
               </button>
             </div>
           )}
@@ -213,9 +192,9 @@ export default function HomePage() {
             <div className="space-y-4">
               <div className="space-y-3">
                 {[
-                  { value: 'face', label: 'Face Recognition', desc: 'Look at camera to verify' },
-                  { value: 'shake', label: 'Phone Shake', desc: 'Shake your phone vigorously' },
-                  { value: 'both', label: 'Both Methods', desc: 'Extra security' }
+                  { value: 'face', label: locale === 'jp' ? '顔認証' : 'Face Recognition', desc: locale === 'jp' ? 'カメラで顔を確認' : 'Look at camera to verify' },
+                  { value: 'shake', label: locale === 'jp' ? 'シェイク認証' : 'Phone Shake', desc: locale === 'jp' ? 'スマホを振って確認' : 'Shake your phone vigorously' },
+                  { value: 'both', label: locale === 'jp' ? '両方' : 'Both Methods', desc: locale === 'jp' ? 'より確実に起床' : 'Extra security' }
                 ].map((method) => (
                   <button
                     key={method.value}
@@ -241,7 +220,7 @@ export default function HomePage() {
                 disabled={isLoading}
                 className="btn-primary w-full"
               >
-                {isLoading ? 'Setting up...' : 'Start Waking Up!'}
+                {isLoading ? (locale === 'jp' ? '設定中...' : 'Setting up...') : (locale === 'jp' ? '設定を完了する' : 'Start Waking Up!')}
               </button>
             </div>
           )}
@@ -254,15 +233,18 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Perfect! You're all set.
+                  {locale === 'jp' ? '設定完了！' : 'Perfect! You\'re all set.'}
                 </h2>
                 <p className="text-gray-600 mb-4">
-                  Your alarm is set for <strong>{wakeTime}</strong> with a ${penaltyAmount} penalty.
+                  {locale === 'jp' 
+                    ? <>アラームは <strong>{wakeTime}</strong> にセットされました。寝坊したら100円が自動的に支払われます。</>
+                    : <>Your alarm is set for <strong>{wakeTime}</strong> with a $1 penalty.</>}
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
                   <p className="text-yellow-800">
-                    💡 <strong>Pro tip:</strong> We'll send you a reminder 10 minutes before your alarm.
-                    Make sure to allow notifications!
+                    💡 <strong>{locale === 'jp' ? 'ヒント' : 'Pro tip'}:</strong> {locale === 'jp' 
+                      ? 'アラームの10分前にリマインダーをお送りします。通知を許可してください！'
+                      : 'We\'ll send you a reminder 10 minutes before your alarm. Make sure to allow notifications!'}
                   </p>
                 </div>
               </div>
@@ -270,7 +252,7 @@ export default function HomePage() {
                 onClick={() => window.location.href = '/dashboard'}
                 className="btn-primary w-full"
               >
-                Go to Dashboard
+                {locale === 'jp' ? 'ダッシュボードへ' : 'Go to Dashboard'}
               </button>
             </div>
           )}
@@ -282,7 +264,7 @@ export default function HomePage() {
             onClick={() => setStep(step - 1)}
             className="btn-secondary w-full"
           >
-            Back
+            {locale === 'jp' ? '戻る' : 'Back'}
           </button>
         )}
       </div>

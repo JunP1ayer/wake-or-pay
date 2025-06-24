@@ -30,10 +30,10 @@ export default function AmountPage() {
             <Yen className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Penalty Amount
+            固定ペナルティ
           </h1>
           <p className="text-gray-600">
-            Set your wake-up accountability amount
+            国内専用・100円固定料金
           </p>
         </div>
 
@@ -50,29 +50,29 @@ export default function AmountPage() {
             {/* Fixed Amount Display */}
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Fixed Penalty Amount
+                100円固定ペナルティ
               </h2>
               <div className="flex items-center justify-center gap-2 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
                 <div className="text-center">
                   <div className="text-5xl font-bold text-blue-700 mb-1">¥100</div>
-                  <div className="text-lg text-blue-600">Japan Fixed Rate</div>
+                  <div className="text-lg text-blue-600">国内固定料金</div>
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-3">
-                Amount charged if you miss your alarm
+                起床失敗時に自動請求される金額
               </p>
             </div>
 
             {/* Description */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-900 mb-2">
-                How the penalty works
+                ペナルティの仕組み
               </h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Fixed amount keeps things simple and fair</li>
-                <li>• Small enough to be manageable, large enough to motivate</li>
-                <li>• Automatic charge if face verification fails</li>
-                <li>• Success means no charge + achievement points</li>
+                <li>• 100円固定でシンプル・公平</li>
+                <li>• 負担にならず、やる気を引き出す金額</li>
+                <li>• 顔認証失敗時に自動請求</li>
+                <li>• 成功時は無料＋達成ポイント獲得</li>
               </ul>
             </div>
 
@@ -89,7 +89,7 @@ export default function AmountPage() {
                 </>
               ) : (
                 <>
-                  Continue to Setup
+                  セットアップへ進む
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
@@ -97,8 +97,8 @@ export default function AmountPage() {
 
             {/* Terms */}
             <p className="text-xs text-gray-500 text-center">
-              By continuing, you agree to the penalty terms. 
-              Build consistency with accountability!
+              続行により、ペナルティ規約に同意したものとします。
+              継続的な早起き習慣を身につけましょう！
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function AmountPage() {
         {/* Footer Info */}
         <div className="text-center">
           <p className="text-sm text-gray-500">
-            💰 Small penalty, big motivation!
+            💰 小さなペナルティ、大きなモチベーション！
           </p>
         </div>
       </div>

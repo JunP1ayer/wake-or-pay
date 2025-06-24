@@ -1,7 +1,54 @@
-// Service Worker for Wake or Pay PWA with Notification Support
-const CACHE_NAME = 'wake-or-pay-v2-fixed'
+// Service Worker for Wake or Pay PWA with Notification Support - Force Update
+const CACHE_NAME = 'wake-or-pay-v3-production-fix'
+
+// Force immediate activation and cache cleanup
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing new service worker')
+  self.skipWaiting() // Force immediate activation
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Cache opened')
+        return cache.addAll(urlsToCache)
+      })
+      .catch((error) => {
+        console.error('[SW] Cache failed:', error)
+      })
+  )
+})
+
+// Take control immediately and clean old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating new service worker')
+  self.clients.claim() // Take control of all pages immediately
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName)
+            return caches.delete(cacheName)
+          }
+        })
+      ).then(() => {
+        console.log('[SW] All old caches cleared, new SW in control')
+        // Force reload of all open pages to use new SW
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ type: 'SW_UPDATED', message: 'Service Worker updated' })
+          })
+        })
+      })
+    })
+  )
+})
+
 const urlsToCache = [
   '/',
+  '/amount',
+  '/face',
   '/dashboard',
   '/manifest.json',
   '/icons/icon-192x192.png',
@@ -54,19 +101,7 @@ const NOTIFICATION_CONFIGS = {
   }
 }
 
-// Install event - cache resources
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Cache opened')
-        return cache.addAll(urlsToCache)
-      })
-      .catch((error) => {
-        console.error('[SW] Cache failed:', error)
-      })
-  )
-})
+// Original install event removed - using enhanced version above
 
 // Fetch event - serve from cache, fallback to network with proper redirect handling
 self.addEventListener('fetch', (event) => {
@@ -135,23 +170,7 @@ self.addEventListener('fetch', (event) => {
   )
 })
 
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME]
-  
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('[SW] Deleting old cache:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    })
-  )
-})
+// Original activate event removed - using enhanced version above
 
 // Message handling from main thread
 self.addEventListener('message', (event) => {

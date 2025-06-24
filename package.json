@@ -13,6 +13,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@mediapipe/face_detection": "^0.4.1648553298",
+    "@mediapipe/camera_utils": "^0.3.1640029074",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/auth-ui-react": "^0.4.7",

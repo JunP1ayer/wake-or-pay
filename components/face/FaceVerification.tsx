@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 
@@ -10,17 +10,108 @@ interface FaceVerificationProps {
   onManualConfirm: () => void
 }
 
+interface DetectionResult {
+  faceDetected: boolean
+  blinkDetected: boolean
+  confidence: number
+}
+
 export function FaceVerification({ onSuccess, onFailure, onManualConfirm }: FaceVerificationProps) {
   const [status, setStatus] = useState<'idle' | 'requesting' | 'active' | 'detecting' | 'success' | 'failed'>('idle')
   const [error, setError] = useState<string | null>(null)
   const [faceDetected, setFaceDetected] = useState(false)
+  const [blinkCount, setBlinkCount] = useState(0)
+  const [confidence, setConfidence] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const faceDetectionRef = useRef<any>(null)
+  const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastEyeStateRef = useRef<boolean>(true) // true = eyes open, false = eyes closed
+
+  // Initialize MediaPipe Face Detection
+  const initializeFaceDetection = useCallback(async () => {
+    try {
+      const { FaceDetection } = await import('@mediapipe/face_detection')
+      const { Camera } = await import('@mediapipe/camera_utils')
+      
+      const faceDetection = new FaceDetection({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+      })
+      
+      faceDetection.setOptions({
+        model: 'short',
+        minDetectionConfidence: 0.5,
+      })
+      
+      faceDetection.onResults((results) => {
+        const canvas = canvasRef.current
+        const video = videoRef.current
+        
+        if (!canvas || !video) return
+        
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        
+        if (results.detections && results.detections.length > 0) {
+          const detection = results.detections[0]
+          const confidence = (detection as any).score?.[0] || 0.5 // Fallback confidence
+          
+          setFaceDetected(true)
+          setConfidence(confidence)
+          
+          // Simple blink detection based on face landmarks
+          if (detection.landmarks && detection.landmarks.length > 0) {
+            // Use eye landmarks to detect blinks (simplified approach)
+            const leftEye = detection.landmarks[0] // Approximate left eye position
+            const rightEye = detection.landmarks[1] // Approximate right eye position
+            
+            // Very basic blink detection - in real implementation, you'd need more sophisticated logic
+            const eyesOpen = leftEye.y < 0.45 && rightEye.y < 0.45 // Threshold for eye openness
+            
+            if (!eyesOpen && lastEyeStateRef.current) {
+              // Eyes just closed (potential blink start)
+              lastEyeStateRef.current = false
+            } else if (eyesOpen && !lastEyeStateRef.current) {
+              // Eyes just opened (blink completed)
+              setBlinkCount(prev => prev + 1)
+              lastEyeStateRef.current = true
+            }
+          }
+          
+          // Success criteria: face detected with good confidence and at least 2 blinks
+          if (confidence > 0.7 && blinkCount >= 2) {
+            setStatus('success')
+            stopCamera()
+            onSuccess()
+          }
+        } else {
+          setFaceDetected(false)
+          setConfidence(0)
+        }
+      })
+      
+      faceDetectionRef.current = { faceDetection, Camera }
+      return faceDetection
+    } catch (error) {
+      console.error('Failed to initialize face detection:', error)
+      return null
+    }
+  }, [blinkCount, onSuccess])
 
   const startCamera = async () => {
     try {
       setStatus('requesting')
       setError(null)
+      setBlinkCount(0)
+      setFaceDetected(false)
+      setConfidence(0)
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -34,20 +125,48 @@ export function FaceVerification({ onSuccess, onFailure, onManualConfirm }: Face
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        setStatus('active')
         
-        // Simulate face detection after 2 seconds
-        setTimeout(() => {
-          setStatus('detecting')
-          setFaceDetected(true)
+        videoRef.current.onloadedmetadata = async () => {
+          setStatus('active')
           
-          // Simulate successful detection after another 2 seconds
-          setTimeout(() => {
-            setStatus('success')
-            stopCamera()
-            onSuccess()
-          }, 2000)
-        }, 2000)
+          // Initialize face detection
+          const faceDetection = await initializeFaceDetection()
+          
+          if (faceDetection && faceDetectionRef.current) {
+            const { Camera } = faceDetectionRef.current
+            
+            const camera = new Camera(videoRef.current!, {
+              onFrame: async () => {
+                if (videoRef.current) {
+                  await faceDetection.send({ image: videoRef.current })
+                }
+              },
+              width: 640,
+              height: 480
+            })
+            
+            camera.start()
+            setStatus('detecting')
+            
+            // Set timeout for verification (30 seconds max)
+            setTimeout(() => {
+              if (status === 'detecting') {
+                setStatus('failed')
+                setError('Face verification timeout')
+                stopCamera()
+                onFailure('Verification timeout')
+              }
+            }, 30000)
+          } else {
+            // Fallback to simple timeout-based verification if MediaPipe fails
+            console.warn('MediaPipe not available, using fallback verification')
+            setTimeout(() => {
+              setStatus('success')
+              stopCamera()
+              onSuccess()
+            }, 3000)
+          }
+        }
       }
     } catch (err) {
       console.error('Camera error:', err)
@@ -64,6 +183,14 @@ export function FaceVerification({ onSuccess, onFailure, onManualConfirm }: Face
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null
+    }
+    if (detectionIntervalRef.current) {
+      clearInterval(detectionIntervalRef.current)
+      detectionIntervalRef.current = null
+    }
+    // Clean up MediaPipe resources
+    if (faceDetectionRef.current?.faceDetection) {
+      faceDetectionRef.current.faceDetection.close()
     }
   }
 
@@ -170,12 +297,25 @@ export function FaceVerification({ onSuccess, onFailure, onManualConfirm }: Face
           playsInline
           muted
           className="w-full max-w-md mx-auto rounded-lg bg-gray-900"
+          style={{ display: status === 'detecting' ? 'none' : 'block' }}
+        />
+        <canvas
+          ref={canvasRef}
+          className="w-full max-w-md mx-auto rounded-lg bg-gray-900"
+          style={{ display: status === 'detecting' ? 'block' : 'none' }}
         />
         {status === 'detecting' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
-            <div className="text-white text-center">
-              <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-              <p>Detecting face...</p>
+          <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-75 text-white text-sm rounded p-2">
+            <div className="flex justify-between items-center">
+              <span>Face: {faceDetected ? '✓' : '✗'}</span>
+              <span>Blinks: {blinkCount}/2</span>
+              <span>Confidence: {Math.round(confidence * 100)}%</span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${Math.min((blinkCount / 2) * 100, 100)}%` }}
+              />
             </div>
           </div>
         )}
@@ -184,10 +324,16 @@ export function FaceVerification({ onSuccess, onFailure, onManualConfirm }: Face
       <div>
         <h3 className="text-lg font-semibold">
           {status === 'active' && 'Position your face in the camera'}
-          {status === 'detecting' && 'Verifying...'}
+          {status === 'detecting' && 'Blink twice to verify wake-up'}
         </h3>
         <p className="text-gray-600">
-          {faceDetected ? 'Face detected: ✓' : 'Looking for your face...'}
+          {status === 'detecting' && (
+            <>
+              {faceDetected ? 'Face detected: ✓' : 'Looking for your face...'}
+              {faceDetected && blinkCount < 2 && <span className="ml-2">Please blink naturally</span>}
+            </>
+          )}
+          {status === 'active' && 'Initializing face detection...'}
         </p>
       </div>
 

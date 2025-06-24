@@ -1,7 +1,5 @@
-'use client';
-
 import { Camera, CheckCircle, ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/router'
 
 export default function FacePage() {
   const router = useRouter()

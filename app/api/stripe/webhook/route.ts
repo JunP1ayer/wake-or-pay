@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { constructWebhookEvent } from '@/lib/stripe'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Create Supabase client with runtime initialization
+const getSupabaseAdmin = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +50,7 @@ export async function POST(request: NextRequest) {
 
 async function handlePaymentSuccess(paymentIntent: any) {
   try {
+    const supabase = getSupabaseAdmin()
     const { error } = await supabase
       .from('payment_transactions')
       .update({ status: 'succeeded' })
@@ -60,6 +68,7 @@ async function handlePaymentSuccess(paymentIntent: any) {
 
 async function handlePaymentFailure(paymentIntent: any) {
   try {
+    const supabase = getSupabaseAdmin()
     const { error } = await supabase
       .from('payment_transactions')
       .update({ status: 'failed' })
@@ -77,6 +86,7 @@ async function handlePaymentFailure(paymentIntent: any) {
 
 async function handlePaymentCanceled(paymentIntent: any) {
   try {
+    const supabase = getSupabaseAdmin()
     const { error } = await supabase
       .from('payment_transactions')
       .update({ status: 'canceled' })

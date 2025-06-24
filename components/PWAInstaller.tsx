@@ -19,7 +19,7 @@ export default function PWAInstaller() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
     // Handle successful installation
-    window.addEventListener('appinstalled', () => {
+    const handleAppInstalled = () => {
       console.log('[PWA] App was installed')
       setShowInstallPrompt(false)
       setDeferredPrompt(null)
@@ -28,13 +28,16 @@ export default function PWAInstaller() {
       setTimeout(() => {
         checkNotificationPermission()
       }, 2000)
-    })
+    }
+    
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     // Check notification permission on load
     checkNotificationPermission()
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 

@@ -24,7 +24,10 @@ export default function FaceCheck({ onSuccess, onError }: FaceCheckProps) {
 
   useEffect(() => {
     return () => {
-      stopCamera()
+      // Defensive cleanup with timeout to prevent DOM access errors
+      setTimeout(() => {
+        stopCamera()
+      }, 0)
     }
   }, [])
 
@@ -91,10 +94,22 @@ export default function FaceCheck({ onSuccess, onError }: FaceCheckProps) {
   }
 
   const stopCamera = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream
-      stream.getTracks().forEach(track => track.stop())
-      videoRef.current.srcObject = null
+    try {
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream
+        stream.getTracks().forEach(track => {
+          try {
+            track.stop()
+          } catch (e) {
+            console.warn('[FaceCheck] Failed to stop track:', e)
+          }
+        })
+        if (videoRef.current) {
+          videoRef.current.srcObject = null
+        }
+      }
+    } catch (error) {
+      console.warn('[FaceCheck] Error stopping camera:', error)
     }
   }
 

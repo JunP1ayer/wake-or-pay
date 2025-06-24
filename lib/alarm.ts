@@ -4,6 +4,7 @@
 let alarmTimeout: NodeJS.Timeout | null = null
 let alarmAudio: HTMLAudioElement | null = null
 let isAlarmActive = false
+let fallbackClickHandler: (() => void) | null = null
 
 /**
  * Request notification permission if not already granted
@@ -83,11 +84,17 @@ function startAlarmAudio() {
         .catch((error) => {
           console.error('Error playing alarm audio:', error)
           // Fallback: try to play after user interaction
-          document.addEventListener('click', () => {
+          fallbackClickHandler = () => {
             if (alarmAudio && isAlarmActive) {
               alarmAudio.play().catch(console.error)
+              // Clean up handler after use
+              if (fallbackClickHandler) {
+                document.removeEventListener('click', fallbackClickHandler)
+                fallbackClickHandler = null
+              }
             }
-          }, { once: true })
+          }
+          document.addEventListener('click', fallbackClickHandler, { once: true })
         })
     }
   } catch (error) {
@@ -99,12 +106,27 @@ function startAlarmAudio() {
  * Stop alarm audio
  */
 export function stopAlarmAudio() {
-  if (alarmAudio) {
-    alarmAudio.pause()
-    alarmAudio.currentTime = 0
+  try {
+    if (alarmAudio) {
+      alarmAudio.pause()
+      alarmAudio.currentTime = 0
+      alarmAudio = null
+    }
+    
+    // Clean up fallback click handler if it exists
+    if (fallbackClickHandler) {
+      document.removeEventListener('click', fallbackClickHandler)
+      fallbackClickHandler = null
+    }
+    
+    isAlarmActive = false
+  } catch (error) {
+    console.warn('[Alarm] Error stopping alarm audio:', error)
+    // Reset state even if cleanup fails
     alarmAudio = null
+    fallbackClickHandler = null
+    isAlarmActive = false
   }
-  isAlarmActive = false
 }
 
 /**

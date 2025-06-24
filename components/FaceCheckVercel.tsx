@@ -36,7 +36,10 @@ export default function FaceCheck({ onSuccess, onError }: FaceCheckProps) {
     checkMobile()
     
     return () => {
-      stopCamera()
+      // Defensive cleanup with timeout to prevent DOM access errors
+      setTimeout(() => {
+        stopCamera()
+      }, 0)
     }
   }, [])
 

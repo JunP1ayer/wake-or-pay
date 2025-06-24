@@ -1,5 +1,5 @@
 // Service Worker for Wake or Pay PWA with Notification Support
-const CACHE_NAME = 'wake-or-pay-v1'
+const CACHE_NAME = 'wake-or-pay-v2-fixed'
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -68,19 +68,69 @@ self.addEventListener('install', (event) => {
   )
 })
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - serve from cache, fallback to network with proper redirect handling
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests and chrome-extension requests
+  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
+    return
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request)
+        if (response) {
+          console.log('[SW] Serving from cache:', event.request.url)
+          return response
+        }
+        
+        console.log('[SW] Fetching from network:', event.request.url)
+        
+        // Clone the request because it can only be consumed once
+        const fetchRequest = event.request.clone()
+        
+        return fetch(fetchRequest, {
+          redirect: 'follow',
+          credentials: 'same-origin',
+          cache: 'default'
+        }).then((response) => {
+          // Check if we received a valid response
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            console.log('[SW] Invalid response:', response?.status, response?.type)
+            return response
+          }
+
+          // Clone the response because it can only be consumed once
+          const responseToCache = response.clone()
+
+          // Cache successful responses
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache)
+              console.log('[SW] Cached response for:', event.request.url)
+            })
+            .catch((error) => {
+              console.error('[SW] Failed to cache:', error)
+            })
+
+          return response
+        }).catch((error) => {
+          console.error('[SW] Network fetch failed:', error)
+          throw error
+        })
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('[SW] Request failed:', error)
         // Fallback for offline scenarios
         if (event.request.destination === 'document') {
-          return caches.match('/')
+          return caches.match('/').then((fallbackResponse) => {
+            return fallbackResponse || new Response('Page not available offline', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: { 'Content-Type': 'text/plain' }
+            })
+          })
         }
+        throw error
       })
   )
 })

@@ -25,6 +25,7 @@ export interface AlarmSchedule {
 class NotificationManager {
   private serviceWorkerRegistration: ServiceWorkerRegistration | null = null
   private permissionGranted = false
+  private messageHandler: ((event: MessageEvent) => void) | null = null
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -46,10 +47,11 @@ class NotificationManager {
       console.log('[Notifications] Service Worker registered')
 
       // Listen for messages from service worker
-      navigator.serviceWorker.addEventListener('message', (event) => {
+      this.messageHandler = (event: MessageEvent) => {
         console.log('[Notifications] Message from SW:', event.data)
         this.handleServiceWorkerMessage(event.data)
-      })
+      }
+      navigator.serviceWorker.addEventListener('message', this.messageHandler)
 
     } catch (error) {
       console.error('[Notifications] Service Worker registration failed:', error)
@@ -248,6 +250,19 @@ class NotificationManager {
     setTimeout(() => {
       this.showNotification(type, { test: true, timestamp: Date.now() })
     }, 3000)
+  }
+
+  // Cleanup method to remove event listeners and prevent memory leaks
+  destroy(): void {
+    if (this.messageHandler && 'serviceWorker' in navigator) {
+      try {
+        navigator.serviceWorker.removeEventListener('message', this.messageHandler)
+        this.messageHandler = null
+        console.log('[Notifications] Event listeners cleaned up')
+      } catch (error) {
+        console.warn('[Notifications] Error cleaning up listeners:', error)
+      }
+    }
   }
 }
 

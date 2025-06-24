@@ -1,13 +1,18 @@
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
-}
+// Runtime Stripe client initialization
+const getStripeClient = () => {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
+  }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-05-28.basil',
-  typescript: true,
-})
+  return new Stripe(secretKey, {
+    apiVersion: '2025-05-28.basil',
+    typescript: true,
+  })
+}
 
 export const PENALTY_AMOUNT = 100 // 100 yen
 
@@ -16,6 +21,7 @@ export async function createPaymentIntent(
   metadata: { user_id: string; wake_attempt_id?: string } = { user_id: '' }
 ) {
   try {
+    const stripe = getStripeClient()
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: 'jpy',
@@ -35,6 +41,7 @@ export async function createPaymentIntent(
 
 export async function confirmPaymentIntent(paymentIntentId: string) {
   try {
+    const stripe = getStripeClient()
     const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId)
     return paymentIntent
   } catch (error) {
@@ -45,6 +52,7 @@ export async function confirmPaymentIntent(paymentIntentId: string) {
 
 export async function getPaymentIntent(paymentIntentId: string) {
   try {
+    const stripe = getStripeClient()
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     return paymentIntent
   } catch (error) {
@@ -54,15 +62,18 @@ export async function getPaymentIntent(paymentIntentId: string) {
 }
 
 export function constructWebhookEvent(body: string, signature: string) {
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  
+  if (!webhookSecret) {
     throw new Error('STRIPE_WEBHOOK_SECRET is not set')
   }
 
   try {
+    const stripe = getStripeClient()
     return stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET
+      webhookSecret
     )
   } catch (error) {
     console.error('Error constructing webhook event:', error)

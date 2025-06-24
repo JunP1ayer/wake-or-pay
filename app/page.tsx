@@ -208,20 +208,21 @@ export default function MainScreen() {
             <div className="space-y-6 py-4">
               {/* Time Picker */}
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-4">起床時刻</h3>
+                <h3 className="text-lg font-semibold mb-2">起床時刻を選んでください</h3>
+                <p className="text-sm text-gray-500 mb-4">タップして編集できます</p>
                 <input
                   type="time"
                   value={alarmTime}
                   onChange={(e) => setAlarmTime(e.target.value)}
-                  className="text-3xl font-bold text-gray-900 bg-gray-50 border border-gray-200 rounded-lg p-4 text-center w-full"
+                  className="text-4xl font-bold text-gray-900 bg-gray-50 border-2 border-gray-300 rounded-lg p-6 text-center w-full hover:border-blue-400 focus:border-blue-500 focus:outline-none transition-colors"
                 />
               </div>
 
-              {/* Penalty Display */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                <h3 className="font-semibold text-blue-900 mb-2">ペナルティ</h3>
-                <div className="text-3xl font-bold text-blue-700">¥100</div>
-                <p className="text-sm text-blue-600 mt-1">起床失敗時の固定料金</p>
+              {/* Description */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2 text-sm text-gray-700">
+                <p>• 設定した時間にアラームが鳴ります</p>
+                <p>• 起床できなかった場合、<strong className="text-red-600">100円のペナルティ</strong>が発生します</p>
+                <p>• ※顔認証により起床を確認する予定です（現在はスキップ中）</p>
               </div>
 
               <Button 

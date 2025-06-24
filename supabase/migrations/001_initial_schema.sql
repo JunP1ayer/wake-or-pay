@@ -110,6 +110,24 @@ create trigger payment_transactions_updated_at
   before update on public.payment_transactions
   for each row execute procedure public.handle_updated_at();
 
+-- Wake verification tracking table
+create table public.wake_verification (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users(id) not null,
+  date date not null,
+  verified boolean default false,
+  alarm_time time not null,
+  verification_deadline timestamptz not null,
+  created_at timestamptz default now(),
+  unique(user_id, date)
+);
+
+-- RLS for wake verification
+alter table public.wake_verification enable row level security;
+
+create policy "Users can view own wake verification" on public.wake_verification
+  for all using (auth.uid() = user_id);
+
 -- Indexes for performance
 create index idx_alarms_user_id on public.alarms(user_id);
 create index idx_alarms_active on public.alarms(user_id, is_active);
@@ -117,3 +135,5 @@ create index idx_wake_attempts_user_id on public.wake_attempts(user_id);
 create index idx_wake_attempts_alarm_id on public.wake_attempts(alarm_id);
 create index idx_payment_transactions_user_id on public.payment_transactions(user_id);
 create index idx_payment_transactions_stripe_id on public.payment_transactions(stripe_payment_intent_id);
+create index idx_wake_verification_user_date on public.wake_verification(user_id, date);
+create index idx_wake_verification_deadline on public.wake_verification(verification_deadline);

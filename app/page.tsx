@@ -31,10 +31,10 @@ export default function Home() {
             <AlarmClock className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Wake Up Challenge
+            目覚ましチャレンジ
           </h1>
           <p className="text-gray-600">
-            Set your wake-up time and build a healthy morning routine
+            起床時刻を設定して健康的な朝の習慣を作りましょう
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export default function Home() {
             {/* Time Selection */}
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Choose Your Wake-Up Time
+                起床時刻を選択
               </h2>
               <div className="flex items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg">
                 <Clock className="w-6 h-6 text-gray-600" />
@@ -63,20 +63,20 @@ export default function Home() {
                 />
               </div>
               <p className="text-sm text-gray-600 mt-2">
-                Your daily alarm time
+                毎日のアラーム時刻
               </p>
             </div>
 
             {/* Description */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-900 mb-2">
-                How it works
+                使い方
               </h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Alarm will ring at your chosen time</li>
-                <li>• Use face verification to prove you're awake</li>
-                <li>• Miss the alarm? A small penalty applies</li>
-                <li>• Success brings rewards and achievements</li>
+                <li>• 設定した時間にアラームが鳴ります</li>
+                <li>• 顔認証で起床を証明してください</li>
+                <li>• アラームを止め損ねると小額のペナルティ</li>
+                <li>• 成功すると報酬と達成ポイントを獲得</li>
               </ul>
             </div>
 
@@ -92,7 +92,7 @@ export default function Home() {
                   Setting up...
                 </>
               ) : (
-                'Next: Set Penalty Amount'
+                '次へ: ペナルティ設定'
               )}
             </button>
           </div>
@@ -101,7 +101,7 @@ export default function Home() {
         {/* Footer Info */}
         <div className="text-center">
           <p className="text-sm text-gray-500">
-            💪 Let's build a healthy wake-up routine together!
+            💪 一緒に健康的な早起き習慣を作りましょう！
           </p>
         </div>
       </div>

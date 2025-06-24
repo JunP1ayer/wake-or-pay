@@ -1,5 +1,5 @@
 // Service Worker for Wake or Pay PWA with Notification Support - Force Update
-const CACHE_NAME = 'wake-or-pay-v3-production-fix'
+const CACHE_NAME = 'wake-or-pay-v4-force-refresh-20250624'
 
 // Force immediate activation and cache cleanup
 self.addEventListener('install', (event) => {

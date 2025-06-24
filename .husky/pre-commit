@@ -1,0 +1,52 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# 型チェック
+echo "📝 Type checking..."
+pnpm typecheck
+if [ $? -ne 0 ]; then
+  echo "❌ FAIL: R-01 Type errors detected"
+  exit 1
+fi
+
+# リント
+echo "🧹 Linting..."
+pnpm lint
+if [ $? -ne 0 ]; then
+  echo "❌ FAIL: R-04 Linting errors detected"  
+  exit 1
+fi
+
+# テスト実行 (テストファイルが存在する場合のみ)
+if [ -d "__tests__" ] || [ -d "tests" ] || [ -d "test" ]; then
+  echo "🧪 Running tests..."
+  pnpm test --run
+  if [ $? -ne 0 ]; then
+    echo "❌ FAIL: R-01 Test failures detected"
+    exit 1
+  fi
+fi
+
+# 禁止パターンの検出
+echo "🚫 Checking for prohibited patterns..."
+
+# R-02: Skip patterns
+if find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | xargs grep -l "it\.skip\|describe\.skip\|test\.skip" 2>/dev/null; then
+  echo "❌ FAIL: R-02 Skipped tests detected"
+  exit 1
+fi
+
+# R-05: Temporary patches
+if find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | xargs grep -l "TODO\|FIXME\|HACK" 2>/dev/null; then
+  echo "❌ FAIL: R-05 Temporary patches detected"
+  exit 1
+fi
+
+# R-03: Hardcoded responses (basic check)
+if find . -name "*.ts" -o -name "*.tsx" | grep -v node_modules | xargs grep -l "const.*response.*=.*{" 2>/dev/null; then
+  echo "⚠️  WARNING: Potential hardcoded responses detected - manual review required"
+fi
+
+echo "✅ All pre-commit checks passed!"

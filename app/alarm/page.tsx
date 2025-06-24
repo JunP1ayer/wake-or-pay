@@ -94,7 +94,7 @@ export default function AlarmPage() {
             <div className="space-y-3">
               <button
                 onClick={handleGoToVerification}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium text-lg"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-lg"
               >
                 <CheckCircle className="w-6 h-6" />
                 Stop Alarm & Verify I'm Awake

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { DollarSign, ArrowRight } from 'lucide-react'
+import { Yen, ArrowRight } from 'lucide-react'
 
 export default function AmountPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -27,7 +27,7 @@ export default function AmountPage() {
         {/* Header */}
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <DollarSign className="w-8 h-8 text-blue-600" />
+            <Yen className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Penalty Amount
@@ -55,7 +55,7 @@ export default function AmountPage() {
               <div className="flex items-center justify-center gap-2 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
                 <div className="text-center">
                   <div className="text-5xl font-bold text-blue-700 mb-1">¥100</div>
-                  <div className="text-lg text-blue-600">≈ $1 USD</div>
+                  <div className="text-lg text-blue-600">Japan Fixed Rate</div>
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-3">

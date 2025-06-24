@@ -14,10 +14,11 @@ export function formatTime(date: Date): string {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  // Japan-only: Format as Japanese Yen
+  return new Intl.NumberFormat('ja-JP', {
     style: 'currency',
-    currency: 'USD'
-  }).format(amount / 100)
+    currency: 'JPY'
+  }).format(amount)
 }
 
 export function generateId(): string {

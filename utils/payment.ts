@@ -22,21 +22,12 @@ export const PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       button: '同意して進む'
     }
   },
-  global: {
-    currency: 'USD',
-    symbol: '$',
-    amount: 1,
-    texts: {
-      title: 'Penalty Setup',
-      subtitle: 'You\'ll automatically be charged $1 if you don\'t wake up.',
-      commitment: 'I\'ll automatically be charged $1 if I don\'t wake up',
-      button: 'Agree & Continue'
-    }
-  }
+  // Global USD config removed - Japan market only with fixed 100 yen penalty
 }
 
 export function getPaymentConfig(locale: 'jp' | 'global'): PaymentConfig {
-  return PAYMENT_CONFIGS[locale] || PAYMENT_CONFIGS.global
+  // Always return Japan config since we removed global USD support
+  return PAYMENT_CONFIGS.jp
 }
 
 // Convert amount to cents/smallest currency unit for Stripe

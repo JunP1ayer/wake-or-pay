@@ -46,13 +46,13 @@ export default function LanguageToggle() {
     setIsOpen(false)
   }
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch - show exactly same structure
   if (!mounted) {
     return (
       <div className="relative">
-        <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg">
+        <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
           <Globe className="w-4 h-4" />
-          <span>Language</span>
+          <span>English</span>
         </button>
       </div>
     )

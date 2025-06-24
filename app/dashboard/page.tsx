@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, TrendingUp, DollarSign, Clock, Settings, Bell, TestTube } from 'lucide-react'
+import { Calendar, TrendingUp, Yen, Clock, Settings, Bell, TestTube } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import { supabase, type Alarm, type Result, type UserKPI } from '@/lib/supabase'
 import { formatTime, formatCurrency } from '@/lib/utils'
@@ -246,7 +246,7 @@ export default function DashboardPage() {
           <div className="card">
             <div className="flex items-center">
               <div className="p-2 bg-danger-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-danger-600" />
+                <Yen className="w-6 h-6 text-danger-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Penalties</p>

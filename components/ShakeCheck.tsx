@@ -100,7 +100,7 @@ export default function ShakeCheck({ onSuccess, onError }: ShakeCheckProps) {
 
   const stopShakeDetection = () => {
     setIsActive(false)
-    window.removeEventListener('devicemotion', () => {})
+    window.removeEventListener('devicemotion', handleMotion)
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }

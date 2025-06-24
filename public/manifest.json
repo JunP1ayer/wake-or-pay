@@ -1,0 +1,16 @@
+{
+  "name": "Wake-or-Pay",
+  "short_name": "WakeOrPay",
+  "description": "目覚まし×100円の行動強制アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

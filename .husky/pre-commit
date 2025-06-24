@@ -22,7 +22,7 @@ fi
 # テスト実行 (テストファイルが存在する場合のみ)
 if [ -d "__tests__" ] || [ -d "tests" ] || [ -d "test" ]; then
   echo "🧪 Running tests..."
-  pnpm test --run
+  pnpm test:run
   if [ $? -ne 0 ]; then
     echo "❌ FAIL: R-01 Test failures detected"
     exit 1
